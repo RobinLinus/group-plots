@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Groups</title>
+</head>
+<style>
+.group {
+    display: flex;
+    flex-direction: column;
+}
+
+.line {
+    display: flex;
+}
+
+.cell {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 8px;
+    /*color: lime;*/
+}
+
+.is-element {
+    background: rgba(0, 0, 0, 0.3)
+}
+</style>
+
+<body>
+    <input id="$modulus" value="59">
+    <div id="$group" class="group"></div>
+</body>
+<script>
+let modulus = 1;
+$modulus.addEventListener('input', e => update())
+
+function update() {
+    modulus = eval($modulus.value)
+
+    $group.innerHTML = '';
+    for (i = 0; i < modulus; i++) {
+        const $line = document.createElement('div');
+        $line.className = 'line'
+        $group.appendChild($line)
+        for (j = 1; j < modulus; j++) {
+            // const isElement = (gcd(i, modulus) == 1 && gcd(j, modulus) == 1) ? 'is-element' : ''
+
+            let value = pow(i, j , modulus)
+
+            // value = value  % 3
+            // while (value >= 10){
+            //     value = Math.floor(value/10) + value % 10
+            // }
+
+            const $el = document.createElement('span');
+            $el.textContent = value 
+            $el.className = 'cell ' //+ isElement
+            if (value % i == 0 ) {
+                // $el.style.background = `rgb(${255*(1-value/modulus)},255,255)`
+                $el.style.background = 'rgba(150,150,150)'
+                
+            } 
+            // if ((gcd(i, modulus) == 1 && gcd(j, modulus) == 1))
+            //   $el.style.background = `rgb(255,${3*(value)},255)`
+            // if(i*j%modulus == 0)
+            $line.appendChild($el)
+        }
+    }
+
+    const lines = Array.from(document.querySelectorAll('.line'));
+    const center = (modulus-1)/2
+    lines[center].style.borderBottom='1px solid red'
+
+    lines.forEach(line=>{
+        Array.from(line.querySelectorAll('.cell'))[center].style.borderLeft='1px solid red'
+    })
+}
+
+function gcd(x, y) {
+    x = Math.abs(x);
+    y = Math.abs(y);
+    while (y) {
+        var t = y;
+        y = x % y;
+        x = t;
+    }
+    return x;
+}
+
+
+
+var pow = function(a, b, n) {
+  if(a===0) return b
+  a = a % n;
+  var result = 1;
+  var x = a;
+
+  while(b > 0){
+    var leastSignificantBit = b % 2;
+    b = Math.floor(b / 2);
+
+    if (leastSignificantBit == 1) {
+      result = result * x;
+      result = result % n;
+    }
+
+    x = x * x;
+    x = x % n;
+  }
+  return result;
+};
+
+update()
+
+</script>
+
+</html>

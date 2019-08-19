@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Graph of b^x mod p</title>
+</head>
+
+<body>
+    <style>
+        html{
+        font-family: system-ui;
+    }
+
+    canvas{
+        display: block;
+        max-width: 100%
+    }
+
+    [center]{
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+</style>
+    <h1>Graph of b^x mod p</h1>
+    b = <input id="$generator" value="2" type="number" autofocus="">
+    p = <input id="$modulus" value="59" type="number">
+    <div center>
+        <canvas id="$canvas" width="2000" height="1000"></canvas>
+    </div>
+    <script>
+    const ctx = $canvas.getContext('2d');
+    const h = Math.min($canvas.width, $canvas.height)
+    const x0 = $canvas.width / 2
+    const y0 = $canvas.height / 2
+    const r = h / 3
+
+    let p = 0;
+    let b = 0;
+    let i = 0;
+    let a = 1;
+    let a0 = 0;
+    let ticker = null;
+    let lastX = 0;
+    let lastY = 0;
+    let elems = {}
+
+
+
+    async function draw(a, p, i) {
+
+        const alpha = 2 * Math.PI * a / p
+        const x = Math.sin(alpha) * r + x0
+        const y = -Math.cos(alpha) * r + y0
+        ctx.beginPath()
+        ctx.strokeStyle = 'black'
+        ctx.moveTo(lastX, lastY)
+        ctx.lineTo(x, y)
+        ctx.stroke();
+
+
+        lastX = x
+        lastY = y
+
+        if (i % p < 1) {
+            return
+        }
+
+
+        if (isPrime(a) && is_generator(a)) {
+            ctx.fillStyle = 'red'
+        } else {
+            ctx.fillStyle = 'black'
+        }
+
+        ctx.fillRect(x - 3, y - 3, 6, 6)
+
+
+        let ft = 1.1
+        let xt = Math.sin(alpha) * r * ft + x0
+        let yt = -Math.cos(alpha) * r * ft + y0
+        ctx.fillText(`${a}`, xt - 6, yt + 9)
+
+        ft = 1.3
+        xt = Math.sin(alpha) * r * ft + x0
+        yt = -Math.cos(alpha) * r * ft + y0
+        ctx.fillText(`b^${i}`, xt - 12, yt + 9)
+
+        ctx.beginPath()
+        ctx.strokeStyle = 'rgba(0,0,200,0.1)'
+        ctx.moveTo(x0, y0)
+        ctx.lineTo(xt, yt)
+        ctx.stroke();
+
+    }
+
+
+    function tick() {
+
+        draw(a, p, i)
+        a = a * b % p
+        i += 1
+        if (elems[a])
+            // end of loop
+            return
+        elems[a] = 1
+        ticker = setTimeout(tick, 100)
+    }
+
+
+    function clear() {
+        clearTimeout(ticker)
+        ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+        ctx.font = '18px system-ui';
+
+        elems = {}
+        a = b
+        i = 1
+        const alpha = 2 * Math.PI * a / p
+        lastX = Math.sin(alpha) * r + x0
+        lastY = -Math.cos(alpha) * r + y0
+
+
+        ctx.beginPath()
+        ctx.strokeStyle = 'rgba(255,0,0,0.2)'
+        ctx.moveTo(x0, 0)
+        ctx.lineTo(x0, $canvas.height)
+
+        ctx.moveTo(0, y0)
+        ctx.lineTo($canvas.width, y0)
+
+        ctx.stroke();
+
+    }
+
+    function sleep(t) {
+        return new Promise(r => {
+            setTimeout(r, t)
+        })
+    }
+
+    window.debouncer = null;
+
+    function debounce(f, t) {
+        return function() {
+            clearTimeout(window.debouncer)
+            window.debouncer = setTimeout(f, t)
+        }
+    }
+
+    async function inputhandler() {
+        p = Number($modulus.value)
+        b = Number($generator.value)
+        clear()
+        tick()
+    }
+
+    $modulus.addEventListener('input', debounce(inputhandler, 200))
+    $generator.addEventListener('input', debounce(inputhandler, 200))
+
+    inputhandler()
+
+
+    function isPrime(n) {
+        if (n < 2) return false;
+        let p = 2;
+        while (p * p <= n) {
+            if (n % p === 0) return false;
+            p = p + 1
+        }
+        return true;
+    }
+
+
+    function pow(a, b, n) {
+        if (a === 0) return b
+        a = a % n;
+        var result = 1;
+        var x = a;
+
+        while (b > 0) {
+            var leastSignificantBit = b % 2;
+            b = Math.floor(b / 2);
+
+            if (leastSignificantBit == 1) {
+                result = result * x;
+                result = result % n;
+            }
+
+            x = x * x;
+            x = x % n;
+        }
+        return result;
+    }
+
+    function is_generator(n) {
+        return pow(n, (p - 1) / 2, p) == p - 1
+    }
+    </script>
+</body>
+
+</html>
